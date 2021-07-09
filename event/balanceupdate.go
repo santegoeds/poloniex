@@ -12,6 +12,7 @@ type BalanceUpdate struct {
 	CurrencyID int
 	Wallet     string
 	Amount     float64
+	Balance    float64
 }
 
 func (bu *BalanceUpdate) ChannelID() int {
@@ -40,5 +41,6 @@ func (bu *BalanceUpdate) Unmarshal(msg message.Message) error {
 		&bu.CurrencyID,
 		&bu.Wallet,
 		&decoder.Float64{Value: &bu.Amount},
+		&decoder.Float64{Value: &bu.Balance},
 	)
 }

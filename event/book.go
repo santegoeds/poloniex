@@ -4,6 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"time"
+
+	"github.com/santegoeds/poloniex/api/decoder"
 
 	"github.com/santegoeds/poloniex/errors"
 	"github.com/santegoeds/poloniex/message"
@@ -14,6 +17,7 @@ var _ Event = &Book{}
 type Order struct {
 	Price float64
 	Size  float64
+	Time  time.Time
 }
 
 type Book struct {
@@ -22,6 +26,7 @@ type Book struct {
 	Asks           []Order
 	Bids           []Order
 	SequenceNr     int64
+	Time           time.Time
 }
 
 func (b *Book) ChannelID() int {
@@ -60,9 +65,16 @@ func (b *Book) Unmarshal(msg message.Message) error {
 		)
 	}
 
+	d := decoder.EpochMs{Value: &b.Time}
+	if err = d.UnmarshalJSON(msg.Data[2]); err != nil {
+		return fmt.Errorf(
+			"%w: failed ot decode epoch_ms %s for proceaggregatedbook", err, string(msg.Data[2]),
+		)
+	}
+
 	// Asks
 	for price, size := range s.Book[0] {
-		o := Order{}
+		o := Order{Time: b.Time}
 		if o.Price, err = strconv.ParseFloat(price, 64); err != nil {
 			return fmt.Errorf(
 				"%w failed to decode price %s for priceaggregatedbook", err, price,
@@ -77,7 +89,7 @@ func (b *Book) Unmarshal(msg message.Message) error {
 	}
 	// Bids
 	for price, size := range s.Book[1] {
-		o := Order{}
+		o := Order{Time: b.Time}
 		if o.Price, err = strconv.ParseFloat(price, 64); err != nil {
 			return fmt.Errorf(
 				"%w: failed to decode price %s for priceaggregatedbook", err, price,
@@ -90,5 +102,6 @@ func (b *Book) Unmarshal(msg message.Message) error {
 		}
 		b.Bids = append(b.Bids, o)
 	}
+
 	return nil
 }

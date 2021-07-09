@@ -1,9 +1,10 @@
 package event
 
 import (
+	"time"
+
 	"github.com/santegoeds/poloniex/api/decoder"
 	"github.com/santegoeds/poloniex/message"
-	"time"
 )
 
 var _ Event = &BookTrade{}
@@ -14,7 +15,7 @@ type BookTrade struct {
 	TradeType      int
 	Price          float64
 	Size           float64
-	Time           int64
+	Time           time.Time
 	SequenceNr     int64
 }
 
@@ -34,12 +35,9 @@ func (bt *BookTrade) IsBuy() bool {
 	return bt.TradeType == 1
 }
 
-func (bt *BookTrade) DateTime() time.Time {
-	return time.Unix(bt.Time, 0)
-}
-
 func (bt *BookTrade) Unmarshal(msg message.Message) error {
 	type decF64 = decoder.Float64
+	type decEpochMs = decoder.EpochMs
 
 	bt.CurrencyPairID = msg.ChannelID
 
@@ -50,7 +48,7 @@ func (bt *BookTrade) Unmarshal(msg message.Message) error {
 		&bt.TradeType,
 		&decF64{Value: &bt.Size},
 		&decF64{Value: &bt.Price},
-		&bt.Time,
+		&decEpochMs{Value: &bt.Time},
 	); err != nil {
 		return err
 	}

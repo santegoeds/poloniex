@@ -1,8 +1,9 @@
 package event
 
 import (
-	channel2 "github.com/santegoeds/poloniex/channel"
 	"time"
+
+	channel2 "github.com/santegoeds/poloniex/channel"
 
 	"github.com/santegoeds/poloniex/api/decoder"
 	"github.com/santegoeds/poloniex/message"
@@ -21,6 +22,7 @@ type AccountTrade struct {
 	Date          string
 	ClientOrderID int64
 	TradeTotal    float64
+	Time          time.Time
 }
 
 func (at *AccountTrade) ChannelID() int {
@@ -55,6 +57,7 @@ func (at *AccountTrade) DateTime() time.Time {
 func (at *AccountTrade) Unmarshal(msg message.Message) error {
 	type decF64 = decoder.Float64
 	type decI64 = decoder.Int64
+	type decEpochMs = decoder.EpochMs
 
 	return decoder.Unmarshal(
 		msg.Data,
@@ -68,5 +71,6 @@ func (at *AccountTrade) Unmarshal(msg message.Message) error {
 		&at.Date,
 		&decI64{Value: &at.ClientOrderID},
 		&decF64{Value: &at.TradeTotal},
+		&decEpochMs{Value: &at.Time},
 	)
 }

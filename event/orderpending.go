@@ -1,6 +1,8 @@
 package event
 
 import (
+	"time"
+
 	"github.com/santegoeds/poloniex/api/decoder"
 	channel2 "github.com/santegoeds/poloniex/channel"
 	"github.com/santegoeds/poloniex/message"
@@ -15,6 +17,7 @@ type OrderPending struct {
 	Amount         float64
 	OrderType      string
 	ClientOrderID  int64
+	Time           time.Time
 }
 
 func (op OrderPending) ChannelID() int {
@@ -36,6 +39,7 @@ func (op OrderPending) IsBuy() bool {
 func (op *OrderPending) Unmarshal(msg message.Message) error {
 	type decF64 = decoder.Float64
 	type decI64 = decoder.Int64
+	type decEpochMs = decoder.EpochMs
 
 	return decoder.Unmarshal(
 		msg.Data,
@@ -45,5 +49,6 @@ func (op *OrderPending) Unmarshal(msg message.Message) error {
 		&decF64{Value: &op.Amount},
 		&op.OrderType,
 		&decI64{Value: &op.ClientOrderID},
+		&decEpochMs{Value: &op.Time},
 	)
 }

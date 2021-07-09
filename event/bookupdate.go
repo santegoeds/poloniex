@@ -24,6 +24,7 @@ func (bu *BookUpdate) Type() message.Type {
 
 func (bu *BookUpdate) Unmarshal(msg message.Message) error {
 	type decF64 = decoder.Float64
+	type decEpochMs = decoder.EpochMs
 
 	bu.CurrencyPairID = msg.ChannelID
 
@@ -33,5 +34,6 @@ func (bu *BookUpdate) Unmarshal(msg message.Message) error {
 		&bu.OrderType,
 		&decF64{Value: &bu.Order.Price},
 		&decF64{Value: &bu.Order.Size},
+		&decEpochMs{Value: &bu.Order.Time},
 	)
 }
